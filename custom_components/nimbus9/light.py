@@ -91,7 +91,8 @@ class N9APIArea(LightEntity):
             payload["state"]["dimlevel"] = kwargs[ATTR_BRIGHTNESS] / 255
 
         try:
-            resp = await self.coordinator.n9_oauth_session.patch(
+            resp = await self.coordinator.n9_oauth_session.async_request(
+                "PATCH",
                 url,
                 json=payload,
             )
@@ -114,7 +115,8 @@ class N9APIArea(LightEntity):
             payload["state"]["dimlevel"] = kwargs[ATTR_BRIGHTNESS]
 
         try:
-            resp = await self.coordinator.n9_oauth_session.patch(
+            resp = await self.coordinator.n9_oauth_session.async_request(
+                "PATCH",
                 url,
                 json=payload,
             )
