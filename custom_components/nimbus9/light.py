@@ -2,6 +2,7 @@ import logging
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, N9_API_AREA_URL
 from .coordinator import N9LightDataCoordinator
@@ -30,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entitie
     async_add_entities(entities)
 
 
-class N9APIArea(LightEntity):
+class N9APIArea(CoordinatorEntity, LightEntity):
     def __init__(
         self,
         coordinator: N9LightDataCoordinator,
@@ -38,6 +39,7 @@ class N9APIArea(LightEntity):
         name: str,
         supported_color_modes: set[ColorMode] | None,
     ):
+        super().__init__(coordinator, context=light_id)
         self.coordinator = coordinator
         self._light_id = light_id
         self._name = name
