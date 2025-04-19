@@ -1,22 +1,35 @@
 {
     "config": {
-        "abort": {
-            "already_configured": "Device is already configured"
-        },
-        "error": {
-            "cannot_connect": "Failed to connect",
-            "invalid_auth": "Invalid authentication",
-            "unknown": "Unexpected error"
-        },
         "step": {
             "user": {
                 "data": {
-                    "n9_api": "Nimbus9 API Host",
-                    "n9_access_token": "Nimbus9 API Access Token",
+                    "n9_api_url": "Nimbus9 API URL",
                     "n9_account_id": "Nimbus9 Account Id",
-                    "n9_location_id": "Nimbus9 Location Id"
+                    "n9_location_id": "Nimbus9 Location Id",
+                    "n9_sso_realm": "Nimbus9 SSO Realm",
+                    "n9_sso_url": "Nimbus9 SSO URL",
+                    "n9_sso_client_id": "Nimbus9 SSO client id",
+                    "n9_sso_client_secret": "Nimbus9 SSO client secret"
                 }
+            },
+            "pick_implementation": {
+                "title": "Pick authentication method"
             }
+        },
+        "abort": {
+            "already_configured": "Account is already configured",
+            "already_in_progress": "Configuration flow is already in progress",
+            "authorize_url_timeout": "Timeout generating authorize URL.",
+            "missing_configuration": "The component is not configured. Please follow the documentation.",
+            "no_url_available": "No URL available. For information about this error, [check the help section]({docs_url})",
+            "oauth_error": "Received invalid token data.",
+            "oauth_failed": "Error while obtaining access token.",
+            "oauth_timeout": "Timeout resolving OAuth token.",
+            "oauth_unauthorized": "OAuth authorization error while obtaining access token.",
+            "user_rejected_authorize": "Account linking rejected: {error}"
+        },
+        "create_entry": {
+            "default": "Successfully authenticated"
         }
     }
 }

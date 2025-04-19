@@ -1,24 +1,29 @@
 from datetime import timedelta
 import logging
 
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_entry_oauth2_flow
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import N9_API_AREAS_URI
+from .const import N9_API_AREAS_URL
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=30)
 
 
-class LightDataCoordinator(DataUpdateCoordinator):
+class N9LightDataCoordinator(DataUpdateCoordinator):
     def __init__(
-        self, hass, n9_api: str, n9_access_token: str, n9_account: str, n9_location: str
+        self,
+        hass: HomeAssistant,
+        n9_oauth_session: config_entry_oauth2_flow.OAuth2Session,
+        n9_api_url: str,
+        n9_account: str,
+        n9_location: str,
     ):
-        self.n9_api = n9_api
-        self.n9_access_token = n9_access_token
-        self.n9_account = n9_account
-        self.n9_location = n9_location
-        self.session = async_get_clientsession(hass)
+        self.n9_oauth_session = n9_oauth_session
+        self.n9_api_url = n9_api_url
+        self.n9_account_id = n9_account
+        self.n9_location_id = n9_location
 
         super().__init__(
             hass,
@@ -29,17 +34,19 @@ class LightDataCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
-            url = N9_API_AREAS_URI.format(
-                api=self.n9_api, account=self.n9_account, location=self.n9_location
+            url = N9_API_AREAS_URL.format(
+                api_url=self.n9_api_url,
+                account=self.n9_account_id,
+                location=self.n9_location_id,
             )
-            async with self.session.get(
+            resp = await self.n9_oauth_session.async_request(
+                "GET",
                 url,
-                headers={"Authorization": f"Bearer {self.n9_access_token}"},
-            ) as resp:
-                if resp.status != 200:
-                    raise UpdateFailed(
-                        f"API error: {url} [{resp.status}] - {await resp.text()}"
-                    )
-                return await resp.json()
+            )
+            if resp.status != 200:
+                raise UpdateFailed(
+                    f"API error: {url} [{resp.status}] - {await resp.text()}"
+                )
+            return await resp.json()
         except Exception as err:
-            raise UpdateFailed(f"Failed to fetch lights: {err}")
+            raise UpdateFailed(f"Failed to fetch areas: {err}")

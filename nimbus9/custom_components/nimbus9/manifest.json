@@ -6,7 +6,7 @@
     "@schrodingersket"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["auth"],
   "documentation": "https://github.com/nimbus9inc/homeassistant-integration",
   "iot_class": "cloud_polling",
   "quality_scale": "bronze",

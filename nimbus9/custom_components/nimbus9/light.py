@@ -1,27 +1,20 @@
 import logging
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEntity
+from homeassistant.core import HomeAssistant
 
-from .const import (
-    CONF_N9_ACCESS_TOKEN,
-    CONF_N9_ACCOUNT_ID,
-    CONF_N9_API,
-    CONF_N9_LOCATION_ID,
-    N9_API_AREA_URI,
-)
-from .coordinator import LightDataCoordinator
+from .const import DOMAIN, N9_API_AREA_URL
+from .coordinator import N9LightDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    coordinator = LightDataCoordinator(
-        hass,
-        n9_api=config_entry.data[CONF_N9_API],
-        n9_access_token=config_entry.data[CONF_N9_ACCESS_TOKEN],
-        n9_account=config_entry.data[CONF_N9_ACCOUNT_ID],
-        n9_location=config_entry.data[CONF_N9_LOCATION_ID],
-    )
+async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entities):
+    """Set up Nimbus9 lights from a config entry."""
+    # Fetch the existing coordinator from hass.data
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+
+    # Ensure the coordinator has been refreshed
     await coordinator.async_config_entry_first_refresh()
 
     lights = coordinator.data
@@ -40,7 +33,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class N9APIArea(LightEntity):
     def __init__(
         self,
-        coordinator: LightDataCoordinator,
+        coordinator: N9LightDataCoordinator,
         light_id: str,
         name: str,
         supported_color_modes: set[ColorMode] | None,
@@ -87,10 +80,10 @@ class N9APIArea(LightEntity):
         )
 
     async def async_turn_on(self, **kwargs):
-        url = N9_API_AREA_URI.format(
-            api=self.coordinator.n9_api,
-            account=self.coordinator.n9_account,
-            location=self.coordinator.n9_location,
+        url = N9_API_AREA_URL.format(
+            api_url=self.coordinator.n9_api_url,
+            account=self.coordinator.n9_account_id,
+            location=self.coordinator.n9_location_id,
             area=self._light_id,
         )
         payload = {"state": {"power": "ON"}}
@@ -98,25 +91,22 @@ class N9APIArea(LightEntity):
             payload["state"]["dimlevel"] = kwargs[ATTR_BRIGHTNESS] / 255
 
         try:
-            async with self.coordinator.session.patch(
+            resp = await self.coordinator.n9_oauth_session.patch(
                 url,
                 json=payload,
-                headers={"Authorization": f"Bearer {self.coordinator.n9_access_token}"},
-            ) as resp:
-                if resp.status == 200:
-                    await self.coordinator.async_request_refresh()
-                else:
-                    _LOGGER.error(
-                        "Failed to turn on %s: %s", self._name, await resp.text()
-                    )
+            )
+            if resp.status == 200:
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.error("Failed to turn on %s: %s", self._name, await resp.text())
         except Exception as e:
             _LOGGER.error("Exception turning on %s: %s", self._name, e)
 
     async def async_turn_off(self, **kwargs):
-        url = N9_API_AREA_URI.format(
-            api=self.coordinator.n9_api,
-            account=self.coordinator.n9_account,
-            location=self.coordinator.n9_location,
+        url = N9_API_AREA_URL.format(
+            api_url=self.coordinator.n9_api_url,
+            account=self.coordinator.n9_account_id,
+            location=self.coordinator.n9_location_id,
             area=self._light_id,
         )
         payload = {"state": {"power": "OFF"}}
@@ -124,17 +114,16 @@ class N9APIArea(LightEntity):
             payload["state"]["dimlevel"] = kwargs[ATTR_BRIGHTNESS]
 
         try:
-            async with self.coordinator.session.patch(
+            resp = await self.coordinator.n9_oauth_session.patch(
                 url,
                 json=payload,
-                headers={"Authorization": f"Bearer {self.coordinator.n9_access_token}"},
-            ) as resp:
-                if resp.status == 200:
-                    await self.coordinator.async_request_refresh()
-                else:
-                    _LOGGER.error(
-                        "Failed to turn on %s: %s", self._name, await resp.text()
-                    )
+            )
+            if resp.status == 200:
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.error(
+                    "Failed to turn off %s: %s", self._name, await resp.text()
+                )
         except Exception as e:
             _LOGGER.error("Exception turning on %s: %s", self._name, e)
 
