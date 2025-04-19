@@ -1,0 +1,22 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "n9_api": "Nimbus9 API Host",
+                    "n9_access_token": "Nimbus9 API Access Token",
+                    "n9_account_id": "Nimbus9 Account Id",
+                    "n9_location_id": "Nimbus9 Location Id"
+                }
+            }
+        }
+    }
+}
